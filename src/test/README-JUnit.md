@@ -83,7 +83,7 @@ Test 2
 
 ![Registro](capturas/img6.png)
 
-Esto indica que tus pruebas están haciendo inserciones y consultas correctamente en una base de datos de prueba. No se ve ningún mensaje de error ni excepción.
+Esto indica que las pruebas están haciendo inserciones y consultas correctamente en una base de datos de prueba. No se ve ningún mensaje de error ni excepción.
 
 Aunque no hay línea final explícita como en la anterior, el flujo indica ejecución normal y sin fallos.
 
