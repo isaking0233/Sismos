@@ -73,5 +73,5 @@ Este proyecto es un **sistema de predicción y observación de sismos** desarrol
 6. Dockerizacion
    Es comveniente no dockerizarlo ya que no logramos implementar bien el uso del csv para importar la base de datos
    sin embargo si se logro dockerizar sin problemas, si es que se desea
-   ![Registro](capturas/img8.png)
+   ![Registro](capturas/img10.png)
    
