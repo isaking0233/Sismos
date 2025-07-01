@@ -73,7 +73,23 @@ mvn test
 
 En caso de usar un IDE como IntelliJ o Eclipse, puedes ejecutar cada clase de prueba individualmente.
 
-PON AQUI LA CAPTURA DE BUILD SUCCES QUE TE PASE POR WHATS
+Test 1
+
+![Registro](capturas/img5.png)
+
+Test 2
+
+![Registro](capturas/img6.png)
+
+Test 3
+
+![Registro](capturas/img7.png)
+
+Test 4
+
+![Registro](capturas/img8.png)
+
+
 ---
 
 ## 🔐 Seguridad en pruebas
@@ -107,6 +123,8 @@ BUILD SUCCESS
 Tests run: 5, Failures: 0, Errors: 0, Skipped: 0
 ```
 
-PON AQUI OTRA VEZ LA CAPTURA DE BUILD SUCCES QUE TE PASE POR WHATS
+BUILD SUCCESS
+
+![Registro](capturas/img11.png)
 
 ---
