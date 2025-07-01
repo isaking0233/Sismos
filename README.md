@@ -71,7 +71,8 @@ Este proyecto es un **sistema de predicción y observación de sismos** desarrol
    El resultado se transforma en un color para el cuadrante.
 
 6. Dockerizacion
-   Es comveniente no dockerizarlo ya que no logramos implementar bien el uso del csv para importar la base de datos
+
+   Es conveniente no dockerizarlo ya que no logramos implementar bien el uso del csv para importar la base de datos
    sin embargo si se logro dockerizar sin problemas, si es que se desea
    ![Registro](capturas/img10.png)
    
