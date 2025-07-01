@@ -77,17 +77,35 @@ Test 1
 
 ![Registro](capturas/img5.png)
 
+Resultado: El test fue ejecutado sin errores, fallos ni tests omitidos. ¡Éxito!
+
 Test 2
 
 ![Registro](capturas/img6.png)
+
+Esto indica que tus pruebas están haciendo inserciones y consultas correctamente en una base de datos de prueba. No se ve ningún mensaje de error ni excepción.
+
+Aunque no hay línea final explícita como en la anterior, el flujo indica ejecución normal y sin fallos.
 
 Test 3
 
 ![Registro](capturas/img7.png)
 
+Resultado: Nuevamente, el test fue exitoso. Sin errores ni fallos.
+
 Test 4
 
 ![Registro](capturas/img8.png)
+
+Las pruebas (JUnit) se ejecutaron correctamente para los tests de:
+
+HazardAnalysisServiceTest
+
+EarthquakeRepositoryTest
+
+EarthquakeControllerTest
+
+No hubo errores, fallos ni tests omitidos. Todo está funcionando correctamente.
 
 
 ---
