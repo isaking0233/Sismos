@@ -70,29 +70,7 @@ Este proyecto es un **sistema de predicción y observación de sismos** desarrol
  
    El resultado se transforma en un color para el cuadrante.
 
-6. Pruebas de caja negra
-    ### Pruebas en postman
-    Endpoint de prueba: GET http://localhost:8080/api/sismos/count
-   ![Registro](capturas/img5.png)
-   ![Registro](capturas/img6.png)
-
-   Cómo verificar en Postman:
-   Selecciona método (GET o POST).
-   URL: http://localhost:8080/register
-   Params (solo para GET) o pestaña Body → x-www-form-urlencoded (para POST).
-
-   Enviar y comprobar:
-   Status en la barra superior.
-   Cuerpo (HTML o JSON) y/o Location en headers si hay redirect.
-   Cookies o Set-Cookie si manejas sesión inmediata.
-
-   Resultados esperados:
-   200 OK en ambos casos
-   Body: el HTML de la página de registro/login
-   Si mi controlador detecta email/password en query-string podrías mostrar un mensaje de “¡Bienvenido, pre-registro!” o simplemente ignorarlos y renderizar el formulario vacío
-   No debe crear usuario ni hacer redirect en esta llamada
-   ![Registro](capturas/img7.png)
-7. Dockerizacion
+6. Dockerizacion
    Es comveniente no dockerizarlo ya que no logramos implementar bien el uso del csv para importar la base de datos
    sin embargo si se logro dockerizar sin problemas, si es que se desea
    ![Registro](capturas/img8.png)
