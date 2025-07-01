@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapa de Sismos en México</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        #map-container {
+            flex: 1;
+            position: relative;
+        }
+        
+        #map {
+            height: 100%;
+            width: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        
+        .info {
+            padding: 6px 8px;
+            font: 14px/16px Arial, Helvetica, sans-serif;
+            background: white;
+            background: rgba(255,255,255,0.8);
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+            border-radius: 5px;
+        }
+        
+        .info h4 {
+            margin: 0 0 5px;
+            color: #777;
+        }
+        
+        .legend {
+            line-height: 18px;
+            color: #555;
+        }
+        
+        .legend i {
+            width: 18px;
+            height: 18px;
+            float: left;
+            margin-right: 8px;
+            opacity: 0.7;
+        }
+        
+        /* Estilos para el panel de filtros */
+        .filter-panel {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 1000;
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+            width: 250px;
+        }
+        
+        .toggle-filter {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 1000;
+            background: white;
+            padding: 10px;
+            border-radius: 50%;
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div id="map-container">
+        <div id="map"></div>
+        
+        <!-- Botón para mostrar/ocultar filtros -->
+        <div class="toggle-filter" id="toggleFilter">
+            <i class="fas fa-filter"></i>
+        </div>
+        
+        <!-- Panel de filtros -->
+        <div class="filter-panel" id="filterPanel" style="display: none;">
+            <h3>
+                <span>Filtrar Sismos</span>
+                <i class="fas fa-times" id="closeFilter" style="cursor: pointer;"></i>
+            </h3>
+            
+            <div class="filter-group">
+                <label for="magnitudeFilter">Magnitud</label>
+                <select id="magnitudeFilter">
+                    <option value="all">Todas las magnitudes</option>
+                    <option value="0-2">0 - 2</option>
+                    <option value="2-3">2 - 3</option>
+                    <option value="3-4">3 - 4</option>
+                    <option value="4-5">4 - 5</option>
+                    <option value="5+" selected>5+</option>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label for="startDate">Fecha desde</label>
+                <input type="date" id="startDate">
+            </div>
+            
+            <div class="filter-group">
+                <label for="endDate">Fecha hasta</label>
+                <input type="date" id="endDate">
+            </div>
+            
+            <div class="filter-actions">
+                <button class="reset" id="resetFilters">Limpiar</button>
+                <button class="apply" id="applyFilters">Aplicar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        // Verificar si el contenedor del mapa existe
+        if (!document.getElementById('map')) {
+            console.error('No se encontró el elemento con ID "map"');
+        } else {
+            console.log('Elemento del mapa encontrado');
+        }
+        
+        var earthquakes = /*[[${earthquakes}]]*/ [];
+        var markers = [];
+        
+        // Inicializar el mapa solo si el contenedor existe
+        if (document.getElementById('map')) {
+            try {
+                // Crear el mapa centrado en México
+                var map = L.map('map').setView([23.6345, -102.5528], 5);
+                
+                // Añadir capa de OpenStreetMap
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                }).addTo(map);
+                
+                // Función para determinar el color según la magnitud
+                function getColor(magnitude) {
+                    return magnitude > 5 ? '#d73027' :
+                           magnitude > 4 ? '#fc8d59' :
+                           magnitude > 3 ? '#fee08b' :
+                           magnitude > 2 ? '#d9ef8b' :
+                                           '#91cf60';
+                }
+                
+                // Función para agregar marcadores al mapa
+                function addMarkers(earthquakesData) {
+                    // Limpiar marcadores existentes
+                    clearMarkers();
+                    
+                    earthquakesData.forEach(function(quake) {
+                        if (quake.latitude && quake.longitude) {
+                            var marker = L.circleMarker([quake.latitude, quake.longitude], {
+                                radius: quake.magnitude * 2,
+                                fillColor: getColor(quake.magnitude),
+                                color: '#000',
+                                weight: 1,
+                                opacity: 1,
+                                fillOpacity: 0.8
+                            }).addTo(map);
+                            
+                            marker.bindPopup(
+                                '<b>Magnitud:</b> ' + quake.magnitude + '<br>' +
+                                '<b>Fecha:</b> ' + quake.recordDate + '<br>' +
+                                '<b>Hora:</b> ' + quake.time + '<br>' +
+                                '<b>Profundidad:</b> ' + quake.depth + ' km<br>' +
+                                '<b>Localidad:</b> ' + quake.locality + '<br>' +
+                                '<a href="/earthquake/' + quake.id + '">Más detalles</a>'
+                            );
+                            
+                            markers.push(marker);
+                        }
+                    });
+                }
+                
+                // Función para limpiar todos los marcadores
+                function clearMarkers() {
+                    markers.forEach(function(marker) {
+                        map.removeLayer(marker);
+                    });
+                    markers = [];
+                }
+                
+                // Función para filtrar los sismos
+                function filterEarthquakes() {
+                    var magnitudeFilter = document.getElementById('magnitudeFilter').value;
+                    var startDate = document.getElementById('startDate').value;
+                    var endDate = document.getElementById('endDate').value;
+                    
+                    var filtered = earthquakes.filter(function(quake) {
+                        // Filtrar por magnitud
+                        var magnitudeMatch = true;
+                        if (magnitudeFilter !== 'all') {
+                            var quakeMag = quake.magnitude;
+                            switch(magnitudeFilter) {
+                                case '0-2': magnitudeMatch = quakeMag >= 0 && quakeMag < 2; break;
+                                case '2-3': magnitudeMatch = quakeMag >= 2 && quakeMag < 3; break;
+                                case '3-4': magnitudeMatch = quakeMag >= 3 && quakeMag < 4; break;
+                                case '4-5': magnitudeMatch = quakeMag >= 4 && quakeMag < 5; break;
+                                case '5+': magnitudeMatch = quakeMag >= 5; break;
+                            }
+                        }
+                        
+                        // Filtrar por fecha
+                        var dateMatch = true;
+                        if (startDate || endDate) {
+                            var quakeDate = new Date(quake.recordDate);
+                            var start = startDate ? new Date(startDate) : null;
+                            var end = endDate ? new Date(endDate) : null;
+                            
+                            if (start && quakeDate < start) dateMatch = false;
+                            if (end && quakeDate > end) dateMatch = false;
+                        }
+                        
+                        return magnitudeMatch && dateMatch;
+                    });
+                    
+                    addMarkers(filtered);
+                }
+                
+                // Añadir leyenda
+                var legend = L.control({position: 'bottomright'});
+                
+                legend.onAdd = function (map) {
+                    var div = L.DomUtil.create('div', 'info legend'),
+                        magnitudes = [0, 2, 3, 4, 5],
+                        labels = [];
+                    
+                    div.innerHTML = '<h4>Magnitud</h4>';
+                    
+                    for (var i = 0; i < magnitudes.length; i++) {
+                        div.innerHTML +=
+                            '<i style="background:' + getColor(magnitudes[i] + 1) + '"></i> ' + 
+                            magnitudes[i] + (magnitudes[i + 1] ? '–' + magnitudes[i + 1] + '<br>' : '+');
+                    }
+                    
+                    return div;
+                };
+                
+                legend.addTo(map);
+                
+                // Mostrar solo sismos de 5+ al cargar la página
+                document.addEventListener('DOMContentLoaded', function() {
+                    // Establecer el filtro de magnitud a 5+ por defecto
+                    document.getElementById('magnitudeFilter').value = '5+';
+                    // Aplicar el filtro
+                    filterEarthquakes();
+                });
+                
+                // Manejar eventos del panel de filtros
+                document.getElementById('toggleFilter').addEventListener('click', function() {
+                    var panel = document.getElementById('filterPanel');
+                    panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+                });
+                
+                document.getElementById('closeFilter').addEventListener('click', function() {
+                    document.getElementById('filterPanel').style.display = 'none';
+                });
+                
+                document.getElementById('applyFilters').addEventListener('click', filterEarthquakes);
+                
+                document.getElementById('resetFilters').addEventListener('click', function() {
+                    document.getElementById('magnitudeFilter').value = 'all';
+                    document.getElementById('startDate').value = '';
+                    document.getElementById('endDate').value = '';
+                    addMarkers(earthquakes);
+                });
+                
+                console.log('Mapa inicializado correctamente');
+            } catch (error) {
+                console.error('Error al inicializar el mapa:', error);
+            }
+        }
+        /*]]>*/
+    </script>
+</body>
+</html>

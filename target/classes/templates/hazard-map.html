@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Peligrosidad Sísmica en México</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <style>
+        html, body, #map {
+            height: 100%;
+            margin: 0;
+        }
+        .info, .controls {
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            line-height: 1.5em;
+            box-shadow: 0 0 5px rgba(0,0,0,0.3);
+        }
+        .controls {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+
+<div id="map"></div>
+<div class="controls">
+    <label for="minMag">Magnitud mínima:</label>
+    <select id="minMag">
+        <option value="2.0">≥ 2.0</option>
+        <option value="3.0">≥ 3.0</option>
+        <option value="4.0" selected>≥ 4.0</option>
+        <option value="5.0">≥ 5.0</option>
+    </select>
+</div>
+
+<script th:inline="none" src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+<script th:inline="none">
+    const map = L.map('map').setView([23, -102], 5);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: 'Map data © OpenStreetMap contributors'
+    }).addTo(map);
+
+    let rectangles = [];
+
+    function getColor(prob) {
+        return prob > 0.8 ? '#d73027' :
+               prob > 0.6 ? '#fc8d59' :
+               prob > 0.4 ? '#fee08b' :
+               prob > 0.2 ? '#d9ef8b' : '#91cf60';
+    }
+
+    function clearRectangles() {
+        rectangles.forEach(rect => map.removeLayer(rect));
+        rectangles = [];
+    }
+
+    function loadHazardData(minMag) {
+        fetch(`/api/hazard?minMagnitude=${minMag}`)
+            .then(response => response.json())
+            .then(data => {
+                clearRectangles();
+                data.forEach(cell => {
+                    const bounds = [[cell.latCell, cell.lonCell], [cell.latCell + 1, cell.lonCell + 1]];
+                    const color = getColor(cell.probability);
+                    const rect = L.rectangle(bounds, {
+                        color: '#000',
+                        weight: 1,
+                        fillColor: color,
+                        fillOpacity: 0.6
+                    }).addTo(map);
+                    rect.bindPopup(
+                        `<b>Cuadrante:</b> ${cell.latCell}, ${cell.lonCell}<br>
+                         <b>Sismos:</b> ${cell.count}<br>
+                         <b>λ anual:</b> ${cell.lambda.toFixed(3)}<br>
+                         <b>Probabilidad (30 años):</b> ${(cell.probability * 100).toFixed(1)}%`
+                    );
+                    rectangles.push(rect);
+                });
+            });
+    }
+
+    // Control de cambio de magnitud
+    document.getElementById('minMag').addEventListener('change', function () {
+        const minMag = this.value;
+        loadHazardData(minMag);
+    });
+
+    // Inicial
+    loadHazardData(4.0);
+
+    // Leyenda
+    const legend = L.control({position: 'bottomright'});
+    legend.onAdd = function () {
+        const div = L.DomUtil.create('div', 'info legend');
+        const grades = [0, 0.2, 0.4, 0.6, 0.8];
+        div.innerHTML = '<strong>Probabilidad (30 años)</strong><br>';
+        for (let i = 0; i < grades.length; i++) {
+            const next = grades[i + 1];
+            div.innerHTML +=
+                `<i style="background:${getColor(grades[i] + 0.01)};width:18px;height:18px;display:inline-block;margin-right:6px;"></i>` +
+                `${(grades[i]*100)}${next ? '&ndash;' + (next*100) + '%<br>' : '%+'}`;
+        }
+        return div;
+    };
+    legend.addTo(map);
+</script>
+</body>
+</html>

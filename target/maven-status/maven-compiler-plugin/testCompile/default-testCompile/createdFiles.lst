@@ -1,0 +1,5 @@
+mx\ipn\escom\loginsystem\EarthquakeControllerTest.class
+mx\ipn\escom\loginsystem\HazardControllerTest.class
+mx\ipn\escom\loginsystem\EarthquakeRepositoryTest.class
+mx\ipn\escom\loginsystem\LoginSystemApplicationTests.class
+mx\ipn\escom\loginsystem\HazardAnalysisServiceTest.class
